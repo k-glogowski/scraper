@@ -8,8 +8,17 @@ on:
 jobs:
   run-scraper:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    strategy:
+      matrix:
+        include:
+          - city: lodz
+            pages: 8
+            output_path: data/ogloszenia_lodz.csv
+            artifact_name: ogloszenia_lodz
+          - city: krakow
+            pages: 10
+            output_path: scraper/data/ogloszenia_krakow.csv
+            artifact_name: ogloszenia_krakow
 
     steps:
       - name: Checkout repo
@@ -24,14 +33,42 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run scraper
-        run: python scaper.py --city lodz --pages 8 --output data/ogloszenia_lodz.csv
+        run: python scaper.py --city ${{ matrix.city }} --pages ${{ matrix.pages }} --output ${{ matrix.output_path }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.output_path }}
+
+  commit-changes:
+    runs-on: ubuntu-latest
+    needs: run-scraper
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Restore CSV files
+        run: |
+          mkdir -p data scraper/data
+          # Find and copy CSV files from artifacts
+          find artifacts -name "ogloszenia_lodz.csv" -exec cp {} data/ \; 2>/dev/null || true
+          find artifacts -name "ogloszenia_krakow.csv" -exec cp {} scraper/data/ \; 2>/dev/null || true
 
       - name: Commit changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          git add -f data/*.csv
+          git add -f data/*.csv scraper/data/*.csv
           git commit -m "Update scraped data [$(date +'%Y-%m-%d %H:%M:%S')]" || echo "No changes to commit"
           git push
         env:
