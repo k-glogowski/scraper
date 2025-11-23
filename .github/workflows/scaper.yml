@@ -2,7 +2,7 @@ name: Weekly Scraper
 
 on:
   schedule:
-    - cron: "0 6 * * 1"  # co poniedziałek o 6:00 UTC
+    - cron: "0 11 * * 0"  # co niedzielę o 11:00 UTC
   workflow_dispatch:
 
 jobs:
@@ -13,7 +13,7 @@ jobs:
         include:
           - city: lodz
             pages: 8
-            output_path: data/ogloszenia_lodz.csv
+            output_path: scraper/data/ogloszenia_lodz.csv
             artifact_name: ogloszenia_lodz
           - city: krakow
             pages: 10
@@ -60,7 +60,7 @@ jobs:
         run: |
           mkdir -p data scraper/data
           # Find and copy CSV files from artifacts
-          find artifacts -name "ogloszenia_lodz.csv" -exec cp {} data/ \; 2>/dev/null || true
+          find artifacts -name "ogloszenia_lodz.csv" -exec cp {} scraper/data/ \; 2>/dev/null || true
           find artifacts -name "ogloszenia_krakow.csv" -exec cp {} scraper/data/ \; 2>/dev/null || true
 
       - name: Commit changes
