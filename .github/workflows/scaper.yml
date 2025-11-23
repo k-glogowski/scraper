@@ -1,8 +1,8 @@
 name: Weekly Scraper
 
 on:
-  schedule:
-    - cron: "27 10 * * SUN"  # co niedzielę o 11:05 czasu warszawskiego (09:05 UTC w czasie letnim)
+  # schedule:
+  #   - cron: "27 10 * * SUN"  # co niedzielę o 11:05 czasu warszawskiego (09:05 UTC w czasie letnim)
   workflow_dispatch:
 
 jobs:
